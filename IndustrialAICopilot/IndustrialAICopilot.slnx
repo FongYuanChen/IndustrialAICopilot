@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="IndustrialAICopilot.Application/IndustrialAICopilot.Application.csproj" />
+  <Project Path="IndustrialAICopilot.Core/IndustrialAICopilot.Core.csproj" />
+  <Project Path="IndustrialAICopilot.Infrastructure/IndustrialAICopilot.Infrastructure.csproj" />
+  <Project Path="IndustrialAICopilot.Web/IndustrialAICopilot.Web.csproj" />
+</Solution>

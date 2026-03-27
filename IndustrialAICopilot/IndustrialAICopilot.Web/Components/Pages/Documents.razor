@@ -1,0 +1,288 @@
+﻿@page "/documents"
+@rendermode InteractiveServer
+@using IndustrialAICopilot.Application.Interfaces
+@using IndustrialAICopilot.Core.Models
+@inject IKnowledgeBaseManager KnowledgeBaseManager
+
+<div class="doc-container">
+    @* 全螢幕載入遮罩 *@
+    @if (_isProcessing)
+    {
+        <div class="loading-overlay">
+            <div class="spinner-box">
+                <div class="loading-spinner"></div>
+                <p>AI 正在分析並建立索引中，請稍候...</p>
+            </div>
+        </div>
+    }
+
+    <div class="doc-card">
+        @* 標題區塊 *@
+        <header class="doc-header">
+            <div class="doc-header-info">
+                <h2 class="doc-header-title">📂 知識庫管理</h2>
+                <div class="doc-header-content">
+                    <p>建立專屬知識庫，讓 AI 精準掌握您的業務內容。</p>
+                    <small>( 支援格式：<strong>@_displayExtensions</strong> | 大小上限：<strong>@MaxFileSizeMB MB</strong> )</small>
+                </div>
+            </div>
+            
+            <label class="btn-upload @(_isProcessing ? "disabled" : "")">
+                <span class="upload-icon">+</span> 上傳新文件
+                <InputFile OnChange="HandleFileSelected" accept="@_supportedExtensions" disabled="@_isProcessing" class="hidden-input" />
+            </label>
+        </header>
+
+        @* 操作結果提示條 (使用 @key 觸發進場動畫) *@
+        @if (!string.IsNullOrEmpty(_statusMessage))
+        {
+            <div @key="_messageId" class="status-alert @(_isError ? "alert-error" : "alert-success")">
+                <div class="alert-content">
+                    <span class="alert-icon">@(_isError ? "⚠️" : "✅")</span>
+                    <span class="alert-text">@_statusMessage</span>
+                    <button class="btn-close-alert" @onclick="() => _statusMessage = string.Empty">✕</button>
+                </div>
+            </div>
+        }
+
+        @* 內容區塊 *@
+        <main class="doc-body">
+            @if (_documents.Count == 0 && !_isProcessing)
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">📥</div>
+                    <h3>暫無技術文件</h3>
+                    <p>目前知識庫空空如也，請匯入設備手冊或維修日誌開始訓練 AI。</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>文件名稱</th>
+                                <th class="text-right">大小</th>
+                                <th class="text-center">建立時間</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var doc in _documents)
+                            {
+                                <tr @key="doc.Id">
+                                    <td class="doc-name-cell">📄 @doc.Name</td>
+                                    <td class="doc-size-cell text-right">@FormatFileSize(doc.Size)</td>
+                                    <td class="doc-date-cell text-center">@doc.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                                    <td class="text-center">
+                                        <button class="btn-delete" @onclick="() => Delete(doc)" disabled="@_isProcessing">
+                                            🗑️ 刪除
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </main>
+    </div>
+</div>
+
+<style>
+    /* 佈局與容器 */
+    .doc-container { display: flex; flex-direction: column; min-height: calc(100vh - 80px); padding: 30px; background: #0f172a; max-width: 1200px; margin: 0 auto; width: 100%; position: relative; }
+    .doc-card { flex: 1; background: #1e293b; border-radius: 24px; overflow: hidden; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; }
+
+    /* 標題區塊 */
+    .doc-header { padding: 30px 40px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.4); }
+    .doc-header-title { color: white; margin: 0; font-size: 1.5rem; font-weight: 700; }
+    .doc-header-content { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+    .doc-header-content p { margin: 0; color: #94a3b8; font-size: 0.95rem; }
+    .doc-header-content small { margin: 0; color: #64748b; font-size: 0.8rem; opacity: 0.8; }
+    .doc-header-content strong { color: #3b82f6; }
+    .btn-upload { background: #3b82f6; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 600; border: none;cursor: pointer; transition: 0.3s; display: flex; align-items: center; }
+    .btn-upload:hover:not(.disabled) { background: #2563eb; transform: translateY(-2px); }
+    .btn-upload.disabled { opacity: 0.5; cursor: not-allowed; }
+    .upload-icon { font-size: 1.2rem; margin-right: 10px; }
+    .hidden-input { display: none; }
+
+    /* 操作結果提示條 */
+    .status-alert { padding: 12px 20px; animation: fadeInDown 0.4s ease-out; }
+    .alert-content { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .alert-success { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .alert-error { background: rgba(239, 68, 68, 0.15); color: #f87171; border-left: 5px solid #ef4444; border-bottom: 1px solid rgba(239, 68, 68, 0.2); }
+    .btn-close-alert { background: transparent; border: none; color: inherit; font-size: 1.1rem; cursor: pointer; opacity: 0.6; transition: 0.2s; }
+    .btn-close-alert:hover { opacity: 1; transform: scale(1.2); }
+
+    /* 表格內容 */
+    .empty-state { padding: 100px 0; text-align: center; color: #64748b; }
+    .empty-icon { font-size: 3rem; margin-bottom: 20px; opacity: 0.5; }
+    .doc-body { padding: 30px 40px; flex: 1; }
+    .doc-table { width: 100%; border-collapse: collapse; }
+    .doc-table th { color: #64748b; font-size: 0.85rem; text-transform: uppercase; padding: 12px 15px; border-bottom: 1px solid #334155; }
+    .doc-table td { padding: 16px 15px; border-bottom: 1px solid #334155; vertical-align: middle; }
+    .doc-name-cell { color: #f1f5f9; font-weight: 500; font-size: 1rem; }
+    .doc-size-cell { font-family: 'Consolas', monospace; color: #94a3b8; font-size: 0.9rem; }
+    .doc-date-cell { color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+    .btn-delete { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+    .btn-delete:hover:not(:disabled) { background: #ef4444; color: white; }
+
+    /* 全螢幕載入遮罩 */
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .spinner-box { text-align: center; color: #f1f5f9; }
+    .loading-spinner { width: 50px; height: 50px; border: 4px solid rgba(59, 130, 246, 0.1); border-left-color: #3b82f6; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite; }
+
+    /* 輔助類別 */
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+    @@keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+@code {
+    private List<Document> _documents = new();
+    private bool _isProcessing;
+
+    // 檔案支援格式
+    private string _supportedExtensions = "";
+    private string _displayExtensions = "";
+
+    // 狀態訊息相關
+    private string _statusMessage = "";
+    private bool _isError;
+    private int _messageId = 0;
+
+    // 檔案大小上限
+    private const int MaxFileSizeMB = 10;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var documentTask = KnowledgeBaseManager.GetDocumentsAsync();
+            var extensionTask = KnowledgeBaseManager.GetSupportedExtensionsAsync();
+            await Task.WhenAll(documentTask, extensionTask);
+
+            _documents = documentTask.Result;
+
+            var extensions = extensionTask.Result.ToList();
+            _supportedExtensions = string.Join(",", extensions).ToLower();
+            _displayExtensions = string.Join(", ", extensions.Select(x => x.TrimStart('.').ToUpper()));
+        }
+        catch (Exception ex)
+        {
+            await ShowStatus($"初始化失敗：{ex.Message}", true);
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null || _isProcessing)
+            return;
+
+        if (file.Size > MaxFileSizeMB * 1024 * 1024)
+        {
+            await ShowStatus($"檔案太大囉！「{file.Name}」超過了 {MaxFileSizeMB}MB 的限制。", true);
+            return;
+        }
+
+        if (_documents.Any(document => document.Name.Equals(file.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            await ShowStatus($"文件「{file.Name}」已存在，請先刪除舊文件再重新上傳。", true);
+            return;
+        }
+
+        _isProcessing = true;
+        _statusMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: MaxFileSizeMB * 1024 * 1024);
+
+            var (newDocument, _) = await KnowledgeBaseManager.IngestDocumentAsync(file.Name, file.Size, stream);
+
+            _isProcessing = false;
+            StateHasChanged();
+
+            if (newDocument != null)
+            {
+                _documents.Add(newDocument);
+                await ShowStatus($"文件「{file.Name}」上傳並解析成功！");
+            }
+        }
+        catch (Exception ex)
+        {
+            _isProcessing = false;
+            StateHasChanged();
+
+            await ShowStatus($"上傳失敗：{ex.Message}", true);
+        }
+    }
+
+    private async Task Delete(Document document)
+    {
+        if (_isProcessing)
+            return;
+        
+        _isProcessing = true;
+        try 
+        {
+            await KnowledgeBaseManager.DeleteDocumentAsync(document.Id);
+
+            _isProcessing = false;
+            StateHasChanged();
+
+            _documents.Remove(document);
+            await ShowStatus("文件已成功刪除。");
+        }
+        catch (Exception ex)
+        {
+            _isProcessing = false;
+            StateHasChanged();
+
+            await ShowStatus($"刪除失敗：{ex.Message}", true);
+        }
+    }
+
+    private async Task ShowStatus(string message, bool isError = false)
+    {
+        _statusMessage = message;
+        _isError = isError;
+        var currentId = ++_messageId;
+        StateHasChanged();
+
+        // 成功訊息 3 秒後自動消失，錯誤訊息則保留供使用者閱讀
+        if (!isError)
+        {
+            await Task.Delay(3000);
+            if (currentId == _messageId)
+            {
+                _statusMessage = "";
+                StateHasChanged();
+            }
+        }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] units = { "B", "KB", "MB", "GB" };
+        double size = bytes;
+        int unitIndex = 0;
+
+        while (size >= 1024 && unitIndex < units.Length - 1)
+        {
+            size /= 1024;
+            unitIndex++;
+        }
+
+        // 如果是 MB 就顯示兩位小數，如果是 KB 顯示一位，B 則不顯示
+        return $"{size:N1} {units[unitIndex]}";
+    }
+}

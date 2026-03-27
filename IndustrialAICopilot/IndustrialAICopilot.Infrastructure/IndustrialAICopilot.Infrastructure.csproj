@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.GenAI" Version="1.5.0" />
+    <PackageReference Include="LangChain.DocumentLoaders.Pdf" Version="0.17.0" />
+    <PackageReference Include="LangChain.DocumentLoaders.Word" Version="0.17.0" />
+    <PackageReference Include="LangChain.Splitters.CSharp" Version="0.17.0" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.5" />
+    <PackageReference Include="OpenAI" Version="2.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IndustrialAICopilot.Application\IndustrialAICopilot.Application.csproj" />
+    <ProjectReference Include="..\IndustrialAICopilot.Core\IndustrialAICopilot.Core.csproj" />
+  </ItemGroup>
+
+</Project>

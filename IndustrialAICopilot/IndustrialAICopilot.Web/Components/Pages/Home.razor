@@ -1,0 +1,80 @@
+﻿@page "/"
+
+<div class="home-container">
+    
+    @* --- 主要區域 --- *@
+    <div class="main-section-card">
+        <h1 class="main-section-title">
+            <img class="main-section-title-logo" src="favicon.png" alt="Logo" />
+            工業 AI 智能助理
+        </h1>
+
+        <p class="main-section-content">
+            將散亂的<strong>設備手冊</strong>與<strong>維修日誌</strong>轉化為企業數位知識庫。<br />
+            支援現場人員快速排除故障，<strong>有效縮短維修停機時間</strong>，讓資深技師的寶貴經驗能透過 AI 永續傳承。<br />
+        </p>
+
+        <div class="main-section-action-area">
+            <a href="/settings" class="btn btn-sub-action">🔧 配置參數</a>
+            <a href="/documents" class="btn btn-sub-action">📥 建立知識庫</a>
+            <a href="/chat" class="btn btn-main-action">🗣️ 開始諮詢</a>
+        </div>
+
+    </div>
+
+    @* --- 系統能力區域 --- *@
+    <div class="capability-section-header">
+        <h3 class="capability-section-title">🎯 系統核心能力</h3>
+    </div>
+    
+    <div class="capability-section-grid">
+        <div class="capability-card">
+            <div class="capability-card-icon">📄</div>
+            <h4>數位化整合</h4>
+            <p>快速匯入龐大的原廠技術手冊與 SOP，透過 AI 自動解析建立索引，取代傳統繁瑣的紙本翻找。</p>
+        </div>
+        <div class="capability-card">
+            <div class="capability-card-icon">🧠</div>
+            <h4>語意化檢索</h4>
+            <p>支援現場口語提問，即便關鍵字不完全符合，AI 也能理解維修需求並定位到正確段落。</p>
+        </div>
+        <div class="capability-card">
+            <div class="capability-card-icon">💬</div>
+            <h4>依據式回覆</h4>
+            <p>回覆內容嚴格鎖定於上傳的文件，杜絕 AI 產生虛假資訊，確保維修建議具備手冊依據。</p>
+        </div>
+        <div class="capability-card">
+            <div class="capability-card-icon">🌱</div>
+            <h4>經驗永續化</h4>
+            <p>將資深技師的維修隨手筆記與故障排除心得轉化為數位資產，防止關鍵技術隨人員流動失傳。</p>
+        </div>
+    </div>
+    
+</div>
+
+<style>
+    .home-container { padding: 30px; display: flex; flex-direction: column; gap: 40px; max-width: 1200px; margin: 0 auto; }
+
+    .main-section-card { background: #1e293b; border-radius: 24px; border: 1px solid #334155; padding: 60px; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); }
+    .main-section-title { color: white; font-size: 3rem; font-weight: 800; margin: 0; line-height: 1.2; display: flex; align-items: center; gap: 16px; }
+    .main-section-title-logo { width: 64px; height: 64px; }
+
+    .main-section-content { color: #94a3b8; font-size: 1.1rem; margin-top: 24px; line-height: 1.8; }
+    .main-section-content strong { color: #3b82f6; }
+
+    .main-section-action-area {margin-top: 30px; display: flex; gap: 20px; }
+    .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; transition: all 0.2s ease-in-out; display: inline-flex; align-items: center; justify-content: center; }
+    .btn-main-action { background: #3b82f6; border: 1px solid #3b82f6; color: white; }
+    .btn-main-action:hover { background: #2563eb; border-color: #2563eb; color: white; transform: translateY(-2px); }
+    .btn-sub-action { background: transparent; border: 1px solid #3b82f6; color: #3b82f6; }
+    .btn-sub-action:hover { background: #ffffff; border-color: #ffffff; color: #3b82f6; transform: translateY(-2px); }
+
+    .capability-section-header { border-left: 4px solid #3b82f6; padding-left: 15px; }
+    .capability-section-title { color: #f1f5f9; margin: 0; font-size: 1.4rem; }
+    .capability-section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .capability-card { background: #1e293b; border: 1px solid #334155; padding: 30px; border-radius: 20px; transition: 0.3s; }
+    .capability-card:hover { border-color: #3b82f6; background: #243146; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .capability-card-icon { font-size: 2rem; margin-bottom: 20px; }
+    .capability-card h4 { color: white; margin-bottom: 12px; font-size: 1.1rem; }
+    .capability-card p { color: #64748b; font-size: 0.9rem; line-height: 1.6; margin: 0; text-align: justify; }
+</style>

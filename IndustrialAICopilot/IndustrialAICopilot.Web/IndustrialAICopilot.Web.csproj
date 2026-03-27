@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>disable</Nullable>
+	<ApplicationIcon>Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IndustrialAICopilot.Application\IndustrialAICopilot.Application.csproj" />
+    <ProjectReference Include="..\IndustrialAICopilot.Core\IndustrialAICopilot.Core.csproj" />
+    <ProjectReference Include="..\IndustrialAICopilot.Infrastructure\IndustrialAICopilot.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

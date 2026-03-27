@@ -1,0 +1,220 @@
+﻿@page "/settings"
+@rendermode InteractiveServer
+@using IndustrialAICopilot.Application.Interfaces
+@using IndustrialAICopilot.Application.Models
+@using IndustrialAICopilot.Core.Models
+@inject IAISettingsManager AISettingsManager
+
+<div class="settings-container">
+    <div class="settings-card">
+        @* 標題區塊 *@
+        <header class="settings-header">
+            <div class="settings-header-info">
+                <h2 class="settings-header-title">⚙️ 系統設定</h2>
+                <div class="settings-header-content">
+                    <p>配置 AI 模型資訊。</p>
+                    <small><strong>變更向量模型 (Embedding) 將自動觸發知識庫索引重建。</strong></small>
+                </div>
+            </div>
+        </header>
+
+        @* 內容區塊 *@
+        <div class="settings-body">
+
+            <div class="settings-group">
+                <label class="setting-label">🏢 AI 供應商 (Provider)</label>
+                <select class="setting-select" value="@_selectedProviderDisplayName" @onchange="OnProviderChanged">
+                    @foreach (var providerInfo in _providerInfos)
+                    {
+                        <option value="@providerInfo.ProviderDisplayName">@providerInfo.ProviderDisplayName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label class="setting-label">🔑 API 金鑰 (API Key)</label>
+                <input type="password" class="setting-input" @bind="_apiKey" placeholder="請輸入 API Key..." />
+            </div>
+
+            <div class="settings-row">
+
+                <div class="settings-group flex-1">
+                    <label class="setting-label">♾️ 對話模型 (Completion)</label>
+                    <select class="setting-select" @bind="_selectedCompletionModelName">
+                        @foreach (var model in _completionModels)
+                        {
+                            <option value="@model.Name">@model.DisplayName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="settings-group flex-1">
+                    <label class="setting-label">🧬 向量模型 (Embedding)</label>
+                    <select class="setting-select" @bind="_selectedEmbeddingModelName">
+                        @foreach (var model in _embeddingModels)
+                        {
+                            <option value="@model.Name">@model.DisplayName</option>
+                        }
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="settings-footer">
+                <button class="btn-save @(_isSaving ? "disabled" : "")" @onclick="SaveSettings" disabled="@_isSaving">
+                    <span>@(_isSaving ? "⌛ 儲存中..." : "💾 儲存設定")</span>
+                </button>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <span class="error-toast">@_errorMessage</span>
+                }
+                @if (_showSuccessMessage)
+                {
+                    <span class="success-toast">✅ 設定已成功更新！</span>
+                }
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 佈局與容器 */
+    .settings-container { display: flex; flex-direction: column; min-height: calc(100vh - 80px); padding: 30px; background: #0f172a; max-width: 1200px; margin: 0 auto; width: 100%; position: relative; }
+    .settings-card { flex: 1; background: #1e293b; border-radius: 24px; overflow: hidden; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; }
+
+    /* 標題區塊 */
+    .settings-header { padding: 30px 40px; border-bottom: 1px solid #334155; background: rgba(15, 23, 42, 0.4); }
+    .settings-header-title { color: white; margin: 0; font-size: 1.5rem; font-weight: 700; }
+    .settings-header-content { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+    .settings-header-content p { margin: 0; color: #94a3b8; font-size: 0.95rem; }
+    .settings-header-content small { color: #64748b; font-size: 0.8rem; }
+    .settings-header-content strong { color: #3b82f6; }
+
+    /* 內容區塊 */
+    .settings-body { padding: 40px; flex: 1; display: flex; flex-direction: column; gap: 28px; }
+    .settings-row { display: flex; gap: 20px; flex-wrap: wrap; }
+    .flex-1 { flex: 1; min-width: 300px; }
+    .settings-group { display: flex; flex-direction: column; gap: 10px; }
+    .setting-label { color: #f1f5f9; font-weight: 600; font-size: 0.9rem; }
+    .setting-select, .setting-input {
+        background: #0f172a; color: #f1f5f9; border: 1px solid #334155;
+        padding: 12px 16px; border-radius: 10px; outline: none; transition: 0.2s; font-size: 1rem;
+    }
+    .setting-select:focus, .setting-input:focus { border-color: #3b82f6; }
+    .settings-footer { 
+        margin-top: 20px; padding-top: 30px; border-top: 1px solid #334155;
+        display: flex; align-items: center; gap: 20px; 
+    }
+
+    .btn-save { background: #3b82f6; color: white; padding: 12px 32px; border-radius: 10px; font-weight: 600; border: none; cursor: pointer; transition: 0.3s; }
+    .btn-save:hover:not(.disabled) { background: #2563eb; transform: translateY(-2px); }
+    .btn-save.disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .success-toast { color: #10b981; animation: fadeIn 0.4s ease-out; }
+    .error-toast { color: #ef4444; animation: shake 0.4s ease-in-out; }
+
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+
+@code {
+    private List<AIProviderInfo> _providerInfos = AISettingsContext.AvailableProviderInfos;
+    private List<AIModelDefinition> _completionModels = new();
+    private List<AIModelDefinition> _embeddingModels = new();
+
+    private string _selectedProviderDisplayName;
+    private string _selectedCompletionModelName;
+    private string _selectedEmbeddingModelName;
+    private string _apiKey;
+
+    private bool _isSaving = false;
+    private bool _showSuccessMessage = false;
+    private string _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var settingsContext = await AISettingsManager.GetContextAsync();
+        if (settingsContext.AISettingsIsValid)
+        {
+            var providerInfo = _providerInfos.First(info => info.Provider == settingsContext.AISettings.Provider);
+            ApplySettingsToUI(providerInfo,
+                              settingsContext.AISettings.CompletionModelName,
+                              settingsContext.AISettings.EmbeddingModelName,
+                              settingsContext.AISettings.ApiKey);
+        }
+        else
+        {
+            ApplySettingsToUI(_providerInfos.First());
+        }
+    }
+
+    private void OnProviderChanged(ChangeEventArgs e)
+    {
+        var name = e.Value?.ToString();
+        var providerInfo = _providerInfos.FirstOrDefault(p => p.ProviderDisplayName == name);
+        if (providerInfo != null)
+        {
+            ApplySettingsToUI(providerInfo);
+        }
+    }
+
+    private void ApplySettingsToUI(AIProviderInfo providerInfo, string completionModelName = null, string embeddingModelName = null, string apiKey = null)
+    {
+        _selectedProviderDisplayName = providerInfo.ProviderDisplayName;
+        _completionModels = providerInfo.CompletionModels;
+        _embeddingModels = providerInfo.EmbeddingModels;
+
+        _selectedCompletionModelName = completionModelName ?? providerInfo.CompletionModels.First().Name;
+        _selectedEmbeddingModelName = embeddingModelName ?? providerInfo.EmbeddingModels.First().Name;
+        _apiKey = apiKey ?? string.Empty;
+    }
+
+    private async Task SaveSettings()
+    {
+        _errorMessage = null;
+        _showSuccessMessage = false;
+
+        if (string.IsNullOrWhiteSpace(_apiKey))
+        {
+            _errorMessage = "⚠️ 請輸入 API 金鑰 (API Key)。";
+            return;
+        }
+
+        _isSaving = true;
+        try
+        {
+            var providerInfo = _providerInfos.First(info => info.ProviderDisplayName == _selectedProviderDisplayName);
+
+            await AISettingsManager.UpdateContextAsync(new AISettingsContext
+            {
+                AISettings = new AISettings
+                {
+                    Provider = providerInfo.Provider,
+                    CompletionModelName = _selectedCompletionModelName,
+                    EmbeddingModelName = _selectedEmbeddingModelName,
+                    ApiKey = _apiKey
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"❌ 儲存失敗：{ex.Message}";
+            return;
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+
+        // 顯示成功訊息
+        _showSuccessMessage = true;
+        StateHasChanged();
+
+        // 3秒後自動隱藏成功訊息
+        await Task.Delay(3000);
+        _showSuccessMessage = false;
+    }
+}
