@@ -1,6 +1,6 @@
 # ![icon](https://github.com/user-attachments/assets/bfbce3e7-568f-42f6-b8d7-e1af2491705d) 工業 AI 智能助理 ![GitHub watchers](https://img.shields.io/github/watchers/FongYuanChen/IndustrialAICopilot) ![GitHub forks](https://img.shields.io/github/forks/FongYuanChen/IndustrialAICopilot) ![GitHub Repo stars](https://img.shields.io/github/stars/FongYuanChen/IndustrialAICopilot) ![GitHub last commit](https://img.shields.io/github/last-commit/FongYuanChen/IndustrialAICopilot) ![GitHub License](https://img.shields.io/github/license/FongYuanChen/IndustrialAICopilot)
 
-**告別翻找手冊！讓工業 AI 助理幫你解答！**
+**告別翻找手冊！讓工業 AI 助理為你解答！**
 
 > 在工業現場，技術手冊與維修日誌往往散落在各處，導致故障排查時需耗費大量時間翻閱文件或依賴特定人員的經驗。本專案致力於改善這個困境，將零散資料整合為企業專屬數位知識庫，並結合 AI 協助現場人員快速定位與解決問題，有效縮短停機時間，並讓關鍵經驗得以持續累積與傳承。
 
@@ -30,8 +30,6 @@
 ## 🖥️ 操作演示
 
 為了方便您快速上手，本專案提供了一份**模擬保養手冊**作為測試資料，您可以下載後上傳至系統建立知識庫：[工業機械手行走軌道 (Linear Track) 定期保養手冊.txt](https://github.com/user-attachments/files/26299138/Linear.Track.txt)
-
-
 
 https://github.com/user-attachments/assets/eaef1081-f164-4c04-97c7-430639179f2a
 
